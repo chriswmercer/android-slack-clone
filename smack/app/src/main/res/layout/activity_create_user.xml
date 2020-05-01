@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".CreateUserActivity">
+
+    <EditText
+        android:id="@+id/createUserName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="32dp"
+        android:ems="10"
+        android:hint="username"
+        android:inputType="textPersonName"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/createUserEmail"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:ems="10"
+        android:hint="email"
+        android:inputType="textPersonName"
+        app:layout_constraintEnd_toEndOf="@+id/createUserName"
+        app:layout_constraintStart_toStartOf="@+id/createUserName"
+        app:layout_constraintTop_toBottomOf="@+id/createUserName" />
+
+    <EditText
+        android:id="@+id/createUserPassword"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:ems="10"
+        android:hint="password"
+        android:inputType="textPassword"
+        app:layout_constraintEnd_toEndOf="@+id/createUserEmail"
+        app:layout_constraintStart_toStartOf="@+id/createUserEmail"
+        app:layout_constraintTop_toBottomOf="@+id/createUserEmail" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:text="Tap to generate user avatar"
+        app:layout_constraintEnd_toEndOf="@+id/createUserPassword"
+        app:layout_constraintStart_toStartOf="@+id/createUserPassword"
+        app:layout_constraintTop_toBottomOf="@+id/createUserPassword" />
+
+    <ImageView
+        android:id="@+id/createUserAvatar"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_marginTop="8dp"
+        android:clickable="true"
+        android:onClick="onUserCreateAvatarClick"
+        app:layout_constraintEnd_toEndOf="@+id/textView2"
+        app:layout_constraintStart_toStartOf="@+id/textView2"
+        app:layout_constraintTop_toBottomOf="@+id/textView2"
+        app:srcCompat="@drawable/profiledefault" />
+
+    <Button
+        android:id="@+id/createUserBackgroundChange"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="@color/colorPrimary"
+        android:onClick="onUserCreateGenerateBackgrondColourClick"
+        android:text="Generate Background Colour"
+        android:textColor="#FFFFFF"
+        app:layout_constraintEnd_toEndOf="@+id/createUserPassword"
+        app:layout_constraintStart_toStartOf="@+id/createUserPassword"
+        app:layout_constraintTop_toBottomOf="@+id/createUserAvatar" />
+
+    <Button
+        android:id="@+id/createUserCreateUser"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="32dp"
+        android:background="@color/colorPrimary"
+        android:onClick="onCreateUserClick"
+        android:text="Create User"
+        android:textColor="#FFFFFF"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/createUserPassword"
+        app:layout_constraintStart_toStartOf="@+id/createUserPassword" />
+</androidx.constraintlayout.widget.ConstraintLayout>

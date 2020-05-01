@@ -19,7 +19,7 @@
         app:layout_constraintBottom_toTopOf="@+id/loginButtonNavHeader"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.816"
+        app:layout_constraintVertical_bias="0.793"
         app:srcCompat="@drawable/profiledefault" />
 
     <TextView
@@ -46,14 +46,13 @@
         android:id="@+id/loginButtonNavHeader"
         android:layout_width="wrap_content"
         android:layout_height="32dp"
-        android:layout_marginBottom="8dp"
         android:background="@android:color/transparent"
         android:contextClickable="true"
         android:onClick="loginLogoutButtonNavHeaderClicked"
         android:text="Login"
         android:textAlignment="center"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/profileImageNavHeader" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <ImageButton
         android:id="@+id/addChannelButtonNavHeader"
@@ -64,6 +63,7 @@
         android:background="@android:color/transparent"
         android:contextClickable="true"
         android:onClick="addChannelButtonNavHeaderClicked"
+        android:padding="5dp"
         android:scaleType="fitCenter"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
