@@ -1,8 +1,10 @@
 package dev.chrismercer.smack
 
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import androidx.appcompat.app.ActionBarDrawerToggle
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
@@ -17,6 +19,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
+import kotlinx.android.synthetic.main.nav_header_main.*
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
@@ -24,8 +27,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
-
-        //fab.setOnClickListener
 
         val toggle = ActionBarDrawerToggle(
             this,
@@ -42,5 +43,17 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         TODO("Not yet implemented")
+    }
+
+    fun loginLogoutButtonNavHeaderClicked(view: View?) {
+        Log.d("LOGGER", "LoginLogout Pressed")
+    }
+
+    fun addChannelButtonNavHeaderClicked(view: View?) {
+        Log.d("LOGGER","Add Channel Pressed")
+    }
+
+    fun sendMessageMain(view: View?) {
+        Log.d("LOGGER", "Send Clicked")
     }
 }
