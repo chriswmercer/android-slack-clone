@@ -1,5 +1,6 @@
 package dev.chrismercer.smack
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -47,6 +48,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     fun loginLogoutButtonNavHeaderClicked(view: View?) {
         Log.d("LOGGER", "LoginLogout Pressed")
+        var loginIntent = Intent(this, LoginActivity::class.java)
+        startActivity(loginIntent)
     }
 
     fun addChannelButtonNavHeaderClicked(view: View?) {
