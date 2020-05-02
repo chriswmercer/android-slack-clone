@@ -1,12 +1,16 @@
 package dev.chrismercer.smack.controllers
 
+import android.content.Intent
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.Toast
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import dev.chrismercer.smack.R
 import dev.chrismercer.smack.services.AuthService
+import dev.chrismercer.smack.utils.BROADCAST_USER_DATA_CHANGE
 import kotlinx.android.synthetic.main.activity_create_user.*
 import kotlin.random.Random
 
@@ -18,6 +22,7 @@ class CreateUserActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create_user)
+        createSpinner.visibility = View.INVISIBLE
     }
 
     fun onUserCreateAvatarClick(view: View?) {
@@ -25,10 +30,10 @@ class CreateUserActivity : AppCompatActivity() {
         val color = random.nextInt(2) //upper bound not included
         val avatarNumber = random.nextInt(28)
 
-        if (color == 0) {
-            userAvatar = "light$avatarNumber"
+        userAvatar = if (color == 0) {
+            "light$avatarNumber"
         } else {
-            userAvatar = "dark$avatarNumber"
+            "dark$avatarNumber"
         }
 
         val resourceId = resources.getIdentifier(userAvatar, "drawable", packageName)
@@ -45,17 +50,40 @@ class CreateUserActivity : AppCompatActivity() {
     }
 
     fun onCreateUserClick(view: View?) {
-        val email = createUserEmail.text.toString()
-        val password = createUserPassword.text.toString()
+        var usernameStr = createUserName.text.toString()
+        val emailStr = createUserEmail.text.toString()
+        val passwordStr = createUserPassword.text.toString()
 
-        AuthService.registerUser(this, email, password) { created ->
+        if(usernameStr == "" || emailStr == "" || passwordStr == "") {
+            Toast.makeText(this, "Enter all the information", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        enableSpinner(true)
+
+        AuthService.registerUser(this, usernameStr, emailStr, passwordStr, userAvatar, avatarColor) { created ->
             if(created) {
-                AuthService.loginUser(this, email, password) { loggedIn ->
-                    if(loggedIn) {
-                        Log.d("CREATE", "User logged in")
-                    }
-                }
+                val userDataChange = Intent(BROADCAST_USER_DATA_CHANGE)
+                LocalBroadcastManager.getInstance(this).sendBroadcast(userDataChange)
+
+                enableSpinner(false)
+                finish()
+            } else {
+                enableSpinner(false)
+                Toast.makeText(this, "Could not create user. Try again please!", Toast.LENGTH_LONG).show()
             }
         }
+    }
+
+    private fun enableSpinner(enable: Boolean) {
+        if(enable) {
+            createSpinner.visibility = View.VISIBLE
+        } else {
+            createSpinner.visibility = View.INVISIBLE
+        }
+
+        createUserAvatar.isEnabled = !enable
+        createUserBackgroundChange.isEnabled = !enable
+        createUserCreateUser.isEnabled = !enable
     }
 }

@@ -8,8 +8,10 @@ import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import dev.chrismercer.smack.R
+import dev.chrismercer.smack.services.AuthService
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
+import kotlinx.android.synthetic.main.nav_header_main.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -37,9 +39,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun clickMe(view: View) {
-        Log.d("LOGGER", "CLICK")
-    }
 
     fun loginLogoutButtonNavHeaderClicked(view: View) {
         Log.d("LOGGER", "LoginLogout Pressed")
@@ -53,5 +52,17 @@ class MainActivity : AppCompatActivity() {
 
     fun sendMessageMain(view: View) {
         Log.d("LOGGER", "Send Clicked")
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        if (AuthService.User.isLoggedIn) {
+            usernameNavHeader.text = AuthService.User.name
+            emailNavHeader.text = AuthService.User.email
+
+            val resourceId = resources.getIdentifier(AuthService.User.avatar, "drawable", packageName)
+            profileImageNavHeader.setImageResource(resourceId)
+
+        }
     }
 }
