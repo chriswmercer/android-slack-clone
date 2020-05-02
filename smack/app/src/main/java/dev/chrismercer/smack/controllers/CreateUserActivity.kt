@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import dev.chrismercer.smack.R
+import dev.chrismercer.smack.services.AuthService
 import kotlinx.android.synthetic.main.activity_create_user.*
 import kotlin.random.Random
 
@@ -43,6 +44,10 @@ class CreateUserActivity : AppCompatActivity() {
     }
 
     fun onCreateUserClick(view: View?) {
-
+        AuthService.registerUser(this, createUserEmail.text.toString(), createUserPassword.text.toString()) { complete ->
+            if(complete) {
+                //succes
+            }
+        }
     }
 }
