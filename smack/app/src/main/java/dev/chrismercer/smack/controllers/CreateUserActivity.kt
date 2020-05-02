@@ -3,6 +3,7 @@ package dev.chrismercer.smack.controllers
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import dev.chrismercer.smack.R
 import dev.chrismercer.smack.services.AuthService
@@ -44,9 +45,16 @@ class CreateUserActivity : AppCompatActivity() {
     }
 
     fun onCreateUserClick(view: View?) {
-        AuthService.registerUser(this, createUserEmail.text.toString(), createUserPassword.text.toString()) { complete ->
-            if(complete) {
-                //succes
+        val email = createUserEmail.text.toString()
+        val password = createUserPassword.text.toString()
+
+        AuthService.registerUser(this, email, password) { created ->
+            if(created) {
+                AuthService.loginUser(this, email, password) { loggedIn ->
+                    if(loggedIn) {
+                        Log.d("CREATE", "User logged in")
+                    }
+                }
             }
         }
     }
