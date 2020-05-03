@@ -1,15 +1,14 @@
 package dev.chrismercer.smack.services
 
 import android.content.Context
+import android.content.Intent
 import android.util.Log
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.android.volley.Response
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
-import dev.chrismercer.smack.utils.JSONPROP_TOKEN
-import dev.chrismercer.smack.utils.URL_CREATE
-import dev.chrismercer.smack.utils.URL_LOGIN
-import dev.chrismercer.smack.utils.URL_REGISTER
+import dev.chrismercer.smack.utils.*
 import org.json.JSONException
 import org.json.JSONObject
 
@@ -110,13 +109,13 @@ object AuthService {
             try {
                 User.id = response.getString("_id")
             } catch (e: JSONException) {
-                logoutUser()
+                logoutUser(context)
                 Log.d("ERROR", "Could not read json on create user: ${e.localizedMessage}")
                 complete(false)
             }
             complete(true)
         }, Response.ErrorListener { error ->
-            logoutUser()
+            logoutUser(context)
             Log.d("ERROR", "Could not create user: ${error.printStackTrace()}")
             complete(false)
         }) {
@@ -138,14 +137,16 @@ object AuthService {
         Volley.newRequestQueue(context).add(createRequest)
     }
 
-    fun logoutUser() {
-        var id = ""
-        var name = ""
-        var email = ""
-        var authToken = ""
-        var avatar = ""
-        var colour = ""
-        var isLoggedIn = false
+    fun logoutUser(context: Context) {
+        User.id = ""
+        User.name = ""
+        User.email = ""
+        User.authToken = ""
+        User.avatar = ""
+        User.colour = ""
+        User.isLoggedIn = false
+        val userDataChange = Intent(BROADCAST_USER_DATA_CHANGE)
+        LocalBroadcastManager.getInstance(context).sendBroadcast(userDataChange)
     }
 
     object User {
