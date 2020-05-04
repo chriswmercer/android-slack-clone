@@ -9,7 +9,9 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
 import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -38,6 +40,7 @@ class MainActivity : AppCompatActivity() {
         drawer_layout.addDrawerListener(toggle)
         toggle.syncState()
 
+        hideKeyboard()
         LocalBroadcastManager.getInstance(this).registerReceiver(userDataChangeReceiver, IntentFilter(BROADCAST_USER_DATA_CHANGE))
     }
 
@@ -67,6 +70,26 @@ class MainActivity : AppCompatActivity() {
 
     fun addChannelButtonNavHeaderClicked(view: View) {
         Log.d("LOGGER","Add Channel Pressed")
+        if(AuthService.User.isLoggedIn) {
+            val builder = AlertDialog.Builder(this)
+            val dialogView = layoutInflater.inflate(R.layout.add_channel_dialog, null)
+            builder.setView(dialogView)
+                .setPositiveButton("Add") { dialogInterface, i ->
+                    //perform when clicked
+                    val nameTextField = dialogView.findViewById<EditText>(R.id.addChanneelName)
+                    val descTextField = dialogView.findViewById<EditText>(R.id.addChannelDesc)
+                    val channelName = nameTextField.text.toString()
+                    val channelDesc = descTextField.text.toString()
+
+                    //create channel - todo
+                    hideKeyboard()
+                }
+                .setNegativeButton("Cancel") { _, _ ->
+                    //cancel and close
+                    hideKeyboard()
+                }
+                .show()
+        }
     }
 
     fun sendMessageMain(view: View) {
@@ -88,6 +111,14 @@ class MainActivity : AppCompatActivity() {
             profileImageNavHeader.setImageResource(resourceId)
             profileImageNavHeader.setBackgroundColor(Color.TRANSPARENT)
             loginButtonNavHeader.text = "Login"
+        }
+    }
+
+    private fun hideKeyboard() {
+        val inputManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+
+        if (inputManager.isAcceptingText) {
+            inputManager.hideSoftInputFromWindow(currentFocus?.windowToken, 0)
         }
     }
 }
