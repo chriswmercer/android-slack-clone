@@ -8,6 +8,7 @@ const val URL_BASE = "https://chriswm-chatter.herokuapp.com/v1/"
 const val URL_REGISTER = "${URL_BASE}account/register"
 const val URL_LOGIN = "${URL_BASE}account/login"
 const val URL_CREATE = "${URL_BASE}user/add"
+const val URL_FIND_USER = "${URL_BASE}user/byEmail/"
 
 //json props
 const val JSONPROP_TOKEN = "token"

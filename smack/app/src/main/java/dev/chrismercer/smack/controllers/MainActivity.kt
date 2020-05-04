@@ -8,6 +8,7 @@ import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
@@ -81,7 +82,7 @@ class MainActivity : AppCompatActivity() {
             profileImageNavHeader.setBackgroundColor(iosColourToAndroid(AuthService.User.colour))
             loginButtonNavHeader.text = "Logout"
         } else {
-            usernameNavHeader.text = "Please Login"
+            usernameNavHeader.text = ""
             emailNavHeader.text = ""
             val resourceId = resources.getIdentifier("profiledefault", "drawable", packageName)
             profileImageNavHeader.setImageResource(resourceId)

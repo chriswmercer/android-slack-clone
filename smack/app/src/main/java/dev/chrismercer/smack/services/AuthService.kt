@@ -20,18 +20,57 @@ object AuthService {
                 Log.d("AUTH", "Could not register user - error in registerUser internal")
                 complete(false)
             } else {
-                loginUser(context, email, password) { loggedIn ->
+                loginUserInternal(context, email, password) { loggedIn ->
                     if (!loggedIn) {
                         Log.d("AUTH", "Could not register user - error in log in")
                         complete(false)
                     } else {
-                        createUser(context, User.authToken, username, email, avatar, colour) { created ->
-                            complete(created)
+                        createUserInternal(context, User.authToken, username, email, avatar, colour) { created ->
+                            if (created) {
+                                userDataChange(context)
+                                complete(true)
+                            } else {
+                                logoutUser(context)
+                                complete(false)
+                            }
                         }
                     }
                 }
             }
         }
+    }
+
+    fun loginUser(context: Context, email: String, password: String, complete: (Boolean) -> Unit) {
+        loginUserInternal(context, email, password) { loggedIn ->
+            if (!loggedIn) {
+                logoutUser(context)
+                Log.d("AUTH", "Could not register user - error in log in")
+                complete(false)
+            } else {
+                findUserByEmail(context, email) { found ->
+                    if (found) {
+                        Log.d("AUTH", "Logged in ok")
+                        userDataChange(context)
+                        complete(true)
+                    } else {
+                        Log.d("AUTH", "Could not log in")
+                        logoutUser(context)
+                        complete(false)
+                    }
+                }
+            }
+        }
+    }
+
+    fun logoutUser(context: Context) {
+        User.id = ""
+        User.name = ""
+        User.email = ""
+        User.authToken = ""
+        User.avatar = ""
+        User.colour = ""
+        User.isLoggedIn = false
+        userDataChange(context)
     }
 
     private fun registerUserInternal(context: Context, email: String, password: String, complete: (Boolean) -> Unit) {
@@ -59,7 +98,7 @@ object AuthService {
         Volley.newRequestQueue(context).add(registerRequest)
     }
 
-    fun loginUser(context: Context, email: String, password: String, complete: (Boolean) -> Unit) {
+    private fun loginUserInternal(context: Context, email: String, password: String, complete: (Boolean) -> Unit) {
         val jsonBody = JSONObject()
         jsonBody.put("email", email)
         jsonBody.put("password", password)
@@ -76,7 +115,6 @@ object AuthService {
                 Log.d("JSON", "Could not log in: ${e.localizedMessage}")
                 complete(false)
             }
-
         }, Response.ErrorListener { error ->
             Log.d("ERROR", "Could not login user: ${error.printStackTrace()}")
             complete(false)
@@ -93,7 +131,7 @@ object AuthService {
         Volley.newRequestQueue(context).add(loginRequest)
     }
 
-    private fun createUser(context: Context, token: String, name: String, email: String, avatar: String, colour: String, complete: (Boolean) -> Unit) {
+    private fun createUserInternal(context: Context, token: String, name: String, email: String, avatar: String, colour: String, complete: (Boolean) -> Unit) {
         val jsonBody = JSONObject()
         jsonBody.put("name", name)
         jsonBody.put("email", email)
@@ -137,14 +175,41 @@ object AuthService {
         Volley.newRequestQueue(context).add(createRequest)
     }
 
-    fun logoutUser(context: Context) {
-        User.id = ""
-        User.name = ""
-        User.email = ""
-        User.authToken = ""
-        User.avatar = ""
-        User.colour = ""
-        User.isLoggedIn = false
+    private fun findUserByEmail(context: Context, email: String, complete: (Boolean) -> Unit) {
+        val finalUrl = "${URL_FIND_USER}${email}"
+
+        val findUserRequest = object : JsonObjectRequest(Method.GET, finalUrl, null, Response.Listener { response ->
+            Log.d("DEBUG", response.toString())
+            try {
+                User.id = response.getString("_id")
+                User.name = response.getString("name")
+                User.avatar = response.getString("avatarName")
+                User.colour = response.getString("avatarColor")
+            } catch (e: JSONException) {
+                logoutUser(context)
+                Log.d("ERROR", "Could not read json on create user: ${e.localizedMessage}")
+                complete(false)
+            }
+            complete(true)
+        }, Response.ErrorListener { error ->
+            Log.d("ERROR", "Could not find user ${email}: ${error.printStackTrace()}")
+            complete(false)
+        }) {
+            override fun getBodyContentType(): String {
+                return "application/json; charset=utf-8"
+            }
+
+            override fun getHeaders(): MutableMap<String, String> {
+                var headers = HashMap<String, String>()
+                headers.put("Authorization", "Bearer ${User.authToken}")
+                return headers
+            }
+        }
+
+        Volley.newRequestQueue(context).add(findUserRequest)
+    }
+
+    private fun userDataChange(context: Context) {
         val userDataChange = Intent(BROADCAST_USER_DATA_CHANGE)
         LocalBroadcastManager.getInstance(context).sendBroadcast(userDataChange)
     }
