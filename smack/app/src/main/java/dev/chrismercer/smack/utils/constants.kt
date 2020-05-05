@@ -9,6 +9,10 @@ const val URL_REGISTER = "${URL_BASE}account/register"
 const val URL_LOGIN = "${URL_BASE}account/login"
 const val URL_CREATE = "${URL_BASE}user/add"
 const val URL_FIND_USER = "${URL_BASE}user/byEmail/"
+const val SOCKET_URL = "https://chriswm-chatter.herokuapp.com/"
+
+//sock events
+const val SOCKET_EVENT_NEW_CHANNEL = "newChannel"
 
 //json props
 const val JSONPROP_TOKEN = "token"
@@ -18,6 +22,7 @@ const val EXTRA_LOGIN_EMAIL = "EXTRA_LOGIN_EMAIL"
 
 //intents
 const val BROADCAST_USER_DATA_CHANGE = "userdatachanged"
+const val BROADCAST_CHANNEL_DATA_CHANGE = "channeldatachanged"
 
 fun iosColourToAndroid(iosColour: String) : Int {
     val strippedColour = iosColour.replace("[", "").replace("]", "").replace(",", "")

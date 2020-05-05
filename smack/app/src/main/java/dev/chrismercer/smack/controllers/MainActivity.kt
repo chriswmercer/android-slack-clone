@@ -17,7 +17,9 @@ import androidx.core.view.GravityCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import dev.chrismercer.smack.R
 import dev.chrismercer.smack.services.AuthService
+import dev.chrismercer.smack.services.ChatServerService
 import dev.chrismercer.smack.utils.BROADCAST_USER_DATA_CHANGE
+import dev.chrismercer.smack.utils.SOCKET_EVENT_NEW_CHANNEL
 import dev.chrismercer.smack.utils.iosColourToAndroid
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
@@ -42,6 +44,22 @@ class MainActivity : AppCompatActivity() {
 
         hideKeyboard()
         LocalBroadcastManager.getInstance(this).registerReceiver(userDataChangeReceiver, IntentFilter(BROADCAST_USER_DATA_CHANGE))
+    }
+
+    override fun onResume() {
+        LocalBroadcastManager.getInstance(this).registerReceiver(userDataChangeReceiver, IntentFilter(BROADCAST_USER_DATA_CHANGE))
+        ChatServerService.connect()
+        super.onResume()
+    }
+
+    override fun onPause() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(userDataChangeReceiver)
+        super.onPause()
+    }
+
+    override fun onDestroy() {
+        ChatServerService.disconnect()
+        super.onDestroy()
     }
 
     private val userDataChangeReceiver = object: BroadcastReceiver() {
@@ -81,12 +99,11 @@ class MainActivity : AppCompatActivity() {
                     val channelName = nameTextField.text.toString()
                     val channelDesc = descTextField.text.toString()
 
-                    //create channel - todo
-                    hideKeyboard()
+                    //create channel
+                    ChatServerService.newChannel(channelName, channelDesc)
                 }
                 .setNegativeButton("Cancel") { _, _ ->
                     //cancel and close
-                    hideKeyboard()
                 }
                 .show()
         }
@@ -94,6 +111,7 @@ class MainActivity : AppCompatActivity() {
 
     fun sendMessageMain(view: View) {
         Log.d("LOGGER", "Send Clicked")
+        hideKeyboard()
     }
 
     private fun updateUserDetails() {
