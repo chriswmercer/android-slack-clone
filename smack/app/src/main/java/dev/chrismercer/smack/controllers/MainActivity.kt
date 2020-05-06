@@ -18,6 +18,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import dev.chrismercer.smack.R
 import dev.chrismercer.smack.services.AuthService
 import dev.chrismercer.smack.services.ChatServerService
+import dev.chrismercer.smack.utils.BROADCAST_CHANNEL_DATA_CHANGE
 import dev.chrismercer.smack.utils.BROADCAST_USER_DATA_CHANGE
 import dev.chrismercer.smack.utils.SOCKET_EVENT_NEW_CHANNEL
 import dev.chrismercer.smack.utils.iosColourToAndroid
@@ -43,21 +44,28 @@ class MainActivity : AppCompatActivity() {
         toggle.syncState()
 
         hideKeyboard()
-        LocalBroadcastManager.getInstance(this).registerReceiver(userDataChangeReceiver, IntentFilter(BROADCAST_USER_DATA_CHANGE))
+
+        setupListeners()
+        ChatServerService.connect(this)
     }
 
-    override fun onResume() {
+    private fun setupListeners() {
         LocalBroadcastManager.getInstance(this).registerReceiver(userDataChangeReceiver, IntentFilter(BROADCAST_USER_DATA_CHANGE))
-        ChatServerService.connect()
-        super.onResume()
+        LocalBroadcastManager.getInstance(this).registerReceiver(channelDataChangeReceiver, IntentFilter(BROADCAST_CHANNEL_DATA_CHANGE))
     }
 
-    override fun onPause() {
+    private fun destroyListeners() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(userDataChangeReceiver)
-        super.onPause()
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(channelDataChangeReceiver)
     }
+//
+//    override fun onResume() {
+//
+//        super.onResume()
+//    }
 
     override fun onDestroy() {
+        destroyListeners()
         ChatServerService.disconnect()
         super.onDestroy()
     }
@@ -65,6 +73,12 @@ class MainActivity : AppCompatActivity() {
     private val userDataChangeReceiver = object: BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             updateUserDetails()
+        }
+    }
+
+    private val channelDataChangeReceiver = object: BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            
         }
     }
 

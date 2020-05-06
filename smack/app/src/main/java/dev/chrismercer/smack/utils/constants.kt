@@ -13,6 +13,7 @@ const val SOCKET_URL = "https://chriswm-chatter.herokuapp.com/"
 
 //sock events
 const val SOCKET_EVENT_NEW_CHANNEL = "newChannel"
+const val SOCKET_EVENT_CHANNEL_CREATED = "channelCreated"
 
 //json props
 const val JSONPROP_TOKEN = "token"
