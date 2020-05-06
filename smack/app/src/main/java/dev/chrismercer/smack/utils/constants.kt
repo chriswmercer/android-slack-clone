@@ -9,6 +9,7 @@ const val URL_REGISTER = "${URL_BASE}account/register"
 const val URL_LOGIN = "${URL_BASE}account/login"
 const val URL_CREATE = "${URL_BASE}user/add"
 const val URL_FIND_USER = "${URL_BASE}user/byEmail/"
+const val URL_GET_CHANNELS = "${URL_BASE}channel/"
 const val SOCKET_URL = "https://chriswm-chatter.herokuapp.com/"
 
 //sock events

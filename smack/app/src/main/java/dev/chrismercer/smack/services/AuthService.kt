@@ -71,6 +71,7 @@ object AuthService {
         User.colour = ""
         User.isLoggedIn = false
         userDataChange(context)
+        ChatServerService.clear()
     }
 
     private fun registerUserInternal(context: Context, email: String, password: String, complete: (Boolean) -> Unit) {

@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import android.widget.ArrayAdapter
 import android.widget.EditText
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
@@ -16,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import dev.chrismercer.smack.R
+import dev.chrismercer.smack.models.Channel
 import dev.chrismercer.smack.services.AuthService
 import dev.chrismercer.smack.services.ChatServerService
 import dev.chrismercer.smack.utils.BROADCAST_CHANNEL_DATA_CHANGE
@@ -27,6 +29,8 @@ import kotlinx.android.synthetic.main.app_bar_main.*
 import kotlinx.android.synthetic.main.nav_header_main.*
 
 class MainActivity : AppCompatActivity() {
+
+    lateinit var channelAdapter: ArrayAdapter<Channel>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,7 +50,13 @@ class MainActivity : AppCompatActivity() {
         hideKeyboard()
 
         setupListeners()
+        setupAdapters()
         ChatServerService.connect(this)
+    }
+
+    private fun setupAdapters() {
+        channelAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, ChatServerService.channels)
+        channel_list.adapter = channelAdapter
     }
 
     private fun setupListeners() {
@@ -58,11 +68,6 @@ class MainActivity : AppCompatActivity() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(userDataChangeReceiver)
         LocalBroadcastManager.getInstance(this).unregisterReceiver(channelDataChangeReceiver)
     }
-//
-//    override fun onResume() {
-//
-//        super.onResume()
-//    }
 
     override fun onDestroy() {
         destroyListeners()
@@ -73,12 +78,21 @@ class MainActivity : AppCompatActivity() {
     private val userDataChangeReceiver = object: BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             updateUserDetails()
+
+            //update channels as the user is logged in
+            context?.let {
+                ChatServerService.getChannels(it) { complete ->
+                    if (complete) {
+                        updateChannels()
+                    }
+                }
+            }
         }
     }
 
     private val channelDataChangeReceiver = object: BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            
+            updateChannels()
         }
     }
 
@@ -144,6 +158,10 @@ class MainActivity : AppCompatActivity() {
             profileImageNavHeader.setBackgroundColor(Color.TRANSPARENT)
             loginButtonNavHeader.text = "Login"
         }
+    }
+
+    private fun updateChannels() {
+        channelAdapter.notifyDataSetChanged()
     }
 
     private fun hideKeyboard() {
