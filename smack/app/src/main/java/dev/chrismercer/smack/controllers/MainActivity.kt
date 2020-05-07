@@ -22,7 +22,6 @@ import dev.chrismercer.smack.services.AuthService
 import dev.chrismercer.smack.services.ChatServerService
 import dev.chrismercer.smack.utils.BROADCAST_CHANNEL_DATA_CHANGE
 import dev.chrismercer.smack.utils.BROADCAST_USER_DATA_CHANGE
-import dev.chrismercer.smack.utils.SOCKET_EVENT_NEW_CHANNEL
 import dev.chrismercer.smack.utils.iosColourToAndroid
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
@@ -49,9 +48,9 @@ class MainActivity : AppCompatActivity() {
 
         hideKeyboard()
 
+        ChatServerService.connect(this)
         setupListeners()
         setupAdapters()
-        ChatServerService.connect(this)
 
         if (AuthService.User.isLoggedIn) {
             AuthService.refreshLoginAfterReload(this) {}
@@ -84,11 +83,9 @@ class MainActivity : AppCompatActivity() {
             updateUserDetails()
 
             //update channels as the user is logged in
-            context?.let {
-                ChatServerService.getChannels(it) { complete ->
-                    if (complete) {
-                        updateChannels()
-                    }
+             ChatServerService.getChannels() { complete ->
+                if (complete) {
+                    updateChannels()
                 }
             }
         }
@@ -124,7 +121,7 @@ class MainActivity : AppCompatActivity() {
             val builder = AlertDialog.Builder(this)
             val dialogView = layoutInflater.inflate(R.layout.add_channel_dialog, null)
             builder.setView(dialogView)
-                .setPositiveButton("Add") { dialogInterface, i ->
+                .setPositiveButton("Add") { _, _ ->
                     //perform when clicked
                     val nameTextField = dialogView.findViewById<EditText>(R.id.addChanneelName)
                     val descTextField = dialogView.findViewById<EditText>(R.id.addChannelDesc)

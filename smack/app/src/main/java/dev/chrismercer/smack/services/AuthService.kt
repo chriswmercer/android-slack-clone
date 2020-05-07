@@ -1,6 +1,5 @@
 package dev.chrismercer.smack.services
 
-import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.util.Log
@@ -16,17 +15,17 @@ import org.json.JSONObject
 object AuthService {
 
     fun registerUser(context: Context, username: String, email: String, password: String, avatar: String, colour: String, complete: (Boolean) -> Unit) {
-        registerUserInternal(context, email, password) { complete ->
-            if (!complete) {
+        registerUserInternal(email, password) { registered ->
+            if (!registered) {
                 Log.d("AUTH", "Could not register user - error in registerUser internal")
                 complete(false)
             } else {
-                loginUserInternal(context, email, password) { loggedIn ->
+                loginUserInternal(email, password) { loggedIn ->
                     if (!loggedIn) {
                         Log.d("AUTH", "Could not register user - error in log in")
                         complete(false)
                     } else {
-                        createUserInternal(context, User.authToken, username, email, avatar, colour) { created ->
+                        createUserInternal(context, username, email, avatar, colour) { created ->
                             if (created) {
                                 userDataChange(context)
                                 complete(true)
@@ -42,7 +41,7 @@ object AuthService {
     }
 
     fun loginUser(context: Context, email: String, password: String, complete: (Boolean) -> Unit) {
-        loginUserInternal(context, email, password) { loggedIn ->
+        loginUserInternal(email, password) { loggedIn ->
             if (!loggedIn) {
                 logoutUser(context)
                 Log.d("AUTH", "Could not register user - error in log in")
@@ -84,7 +83,7 @@ object AuthService {
         ChatServerService.clear()
     }
 
-    private fun registerUserInternal(context: Context, email: String, password: String, complete: (Boolean) -> Unit) {
+    private fun registerUserInternal(email: String, password: String, complete: (Boolean) -> Unit) {
         val jsonBody = JSONObject()
         jsonBody.put("email", email)
         jsonBody.put("password", password)
@@ -109,7 +108,7 @@ object AuthService {
         App.sharedPreferences.requestQueue.add(registerRequest)
     }
 
-    private fun loginUserInternal(context: Context, email: String, password: String, complete: (Boolean) -> Unit) {
+    private fun loginUserInternal(email: String, password: String, complete: (Boolean) -> Unit) {
         val jsonBody = JSONObject()
         jsonBody.put("email", email)
         jsonBody.put("password", password)
@@ -142,7 +141,7 @@ object AuthService {
         App.sharedPreferences.requestQueue.add(loginRequest)
     }
 
-    private fun createUserInternal(context: Context, token: String, name: String, email: String, avatar: String, colour: String, complete: (Boolean) -> Unit) {
+    private fun createUserInternal(context: Context, name: String, email: String, avatar: String, colour: String, complete: (Boolean) -> Unit) {
         val jsonBody = JSONObject()
         jsonBody.put("name", name)
         jsonBody.put("email", email)
@@ -177,8 +176,8 @@ object AuthService {
             }
 
             override fun getHeaders(): MutableMap<String, String> {
-                var headers = HashMap<String, String>()
-                headers.put("Authorization", "Bearer ${User.authToken}")
+                val headers = HashMap<String, String>()
+                headers["Authorization"] = "Bearer ${User.authToken}"
                 return headers
             }
         }
@@ -211,8 +210,8 @@ object AuthService {
             }
 
             override fun getHeaders(): MutableMap<String, String> {
-                var headers = HashMap<String, String>()
-                headers.put("Authorization", "Bearer ${User.authToken}")
+                val headers = HashMap<String, String>()
+                headers["Authorization"] = "Bearer ${User.authToken}"
                 return headers
             }
         }

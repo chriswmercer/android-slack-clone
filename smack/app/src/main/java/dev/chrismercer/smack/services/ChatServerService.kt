@@ -10,7 +10,6 @@ import dev.chrismercer.smack.controllers.App
 import dev.chrismercer.smack.models.Channel
 import dev.chrismercer.smack.utils.*
 import io.socket.client.IO
-import io.socket.emitter.Emitter
 import org.json.JSONException
 import java.lang.Exception
 
@@ -23,11 +22,11 @@ object ChatServerService {
 
     fun connect(context: Context) {
         this.context = context
-        setupChannelListener()
-
         if(!socket.connected()) {
             socket.connect()
         }
+
+        setupChannelListener()
     }
 
     fun disconnect() {
@@ -36,7 +35,7 @@ object ChatServerService {
         }
     }
 
-    fun checkConnection() {
+    private fun checkConnection() {
         if(!socket.connected()) throw Exception("Service must be connected")
     }
 
@@ -45,7 +44,7 @@ object ChatServerService {
         socket.emit(SOCKET_EVENT_NEW_CHANNEL, channelName, channelDesc)
     }
 
-    fun getChannels(context: Context, complete: (Boolean) -> Unit) {
+    fun getChannels(complete: (Boolean) -> Unit) {
         checkConnection()
         if (!AuthService.User.isLoggedIn) complete(false)
 
@@ -61,7 +60,7 @@ object ChatServerService {
                     val channel = Channel(name, desc, id)
                     this.channels.add(channel)
                 }
-                dataChange(BROADCAST_CHANNEL_DATA_CHANGE)
+                BROADCAST_CHANNEL_DATA_CHANGE.dataChange()
                 complete(true)
             } catch (e: JSONException) {
                 Log.d("JSON", "Could not get channels: ${e.localizedMessage}")
@@ -76,8 +75,8 @@ object ChatServerService {
             }
 
             override fun getHeaders(): MutableMap<String, String> {
-                var headers = HashMap<String, String>()
-                headers.put("Authorization", "Bearer ${AuthService.User.authToken}")
+                val headers = HashMap<String, String>()
+                headers["Authorization"] = "Bearer ${AuthService.User.authToken}"
                 return headers
             }
         }
@@ -87,11 +86,11 @@ object ChatServerService {
 
     fun clear() {
         channels.clear()
-        dataChange(BROADCAST_CHANNEL_DATA_CHANGE)
+        BROADCAST_CHANNEL_DATA_CHANGE.dataChange()
     }
 
     private fun setupChannelListener() {
-        socket.on(SOCKET_EVENT_CHANNEL_CREATED, Emitter.Listener { data ->
+        socket.on(SOCKET_EVENT_CHANNEL_CREATED) { data ->
             if (data?.size == 3) {
                 val channelName = data[0] as String
                 val channelDesc = data[1] as String
@@ -99,16 +98,16 @@ object ChatServerService {
 
                 val channel = Channel(channelName, channelDesc, channelId)
                 channels.add(channel)
-                dataChange(BROADCAST_CHANNEL_DATA_CHANGE)
+                BROADCAST_CHANNEL_DATA_CHANGE.dataChange()
             } else {
                 Log.d("CHATSERVERSERVICE", "Did not get expected data")
             }
-        })
+        }
     }
 
-    private fun dataChange(dataId: String) {
+    private fun String.dataChange() {
         if(AuthService.User.isLoggedIn) {
-            val userDataChange = Intent(dataId)
+            val userDataChange = Intent(this)
             LocalBroadcastManager.getInstance(context).sendBroadcast(userDataChange)
         }
     }
