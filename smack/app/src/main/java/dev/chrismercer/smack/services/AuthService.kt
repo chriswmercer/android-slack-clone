@@ -1,5 +1,6 @@
 package dev.chrismercer.smack.services
 
+import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.util.Log
@@ -7,7 +8,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.android.volley.Response
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.StringRequest
-import com.android.volley.toolbox.Volley
+import dev.chrismercer.smack.controllers.App
 import dev.chrismercer.smack.utils.*
 import org.json.JSONException
 import org.json.JSONObject
@@ -62,6 +63,15 @@ object AuthService {
         }
     }
 
+    fun refreshLoginAfterReload(context: Context, complete: (Boolean) -> Unit) {
+        if (User.isLoggedIn) {
+            findUserByEmail(context, User.email) { refreshed ->
+                if(refreshed) userDataChange(context)
+                complete(refreshed)
+            }
+        } else complete(false)
+    }
+
     fun logoutUser(context: Context) {
         User.id = ""
         User.name = ""
@@ -96,7 +106,7 @@ object AuthService {
             }
         }
 
-        Volley.newRequestQueue(context).add(registerRequest)
+        App.sharedPreferences.requestQueue.add(registerRequest)
     }
 
     private fun loginUserInternal(context: Context, email: String, password: String, complete: (Boolean) -> Unit) {
@@ -129,7 +139,7 @@ object AuthService {
             }
         }
 
-        Volley.newRequestQueue(context).add(loginRequest)
+        App.sharedPreferences.requestQueue.add(loginRequest)
     }
 
     private fun createUserInternal(context: Context, token: String, name: String, email: String, avatar: String, colour: String, complete: (Boolean) -> Unit) {
@@ -173,7 +183,7 @@ object AuthService {
             }
         }
 
-        Volley.newRequestQueue(context).add(createRequest)
+        App.sharedPreferences.requestQueue.add(createRequest)
     }
 
     private fun findUserByEmail(context: Context, email: String, complete: (Boolean) -> Unit) {
@@ -207,7 +217,7 @@ object AuthService {
             }
         }
 
-        Volley.newRequestQueue(context).add(findUserRequest)
+        App.sharedPreferences.requestQueue.add(findUserRequest)
     }
 
     private fun userDataChange(context: Context) {
@@ -218,10 +228,19 @@ object AuthService {
     object User {
         var id = ""
         var name = ""
-        var email = ""
-        var authToken = ""
         var avatar = ""
         var colour = ""
-        var isLoggedIn = false
+
+        var email: String
+            get() = App.sharedPreferences.userEmail
+            set(value) { App.sharedPreferences.userEmail = value }
+
+        var authToken: String
+            get() = App.sharedPreferences.authToken
+            set(value) { App.sharedPreferences.authToken = value}
+
+        var isLoggedIn: Boolean
+            get() = App.sharedPreferences.isLoggedIn
+            set(value) { App.sharedPreferences.isLoggedIn = value}
     }
 }

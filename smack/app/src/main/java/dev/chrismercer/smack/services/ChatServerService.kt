@@ -6,7 +6,7 @@ import android.util.Log
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.android.volley.Response
 import com.android.volley.toolbox.JsonArrayRequest
-import com.android.volley.toolbox.Volley
+import dev.chrismercer.smack.controllers.App
 import dev.chrismercer.smack.models.Channel
 import dev.chrismercer.smack.utils.*
 import io.socket.client.IO
@@ -82,7 +82,7 @@ object ChatServerService {
             }
         }
 
-        Volley.newRequestQueue(context).add(channelsRequest)
+        App.sharedPreferences.requestQueue.add(channelsRequest)
     }
 
     fun clear() {

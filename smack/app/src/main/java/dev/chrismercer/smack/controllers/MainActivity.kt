@@ -52,6 +52,10 @@ class MainActivity : AppCompatActivity() {
         setupListeners()
         setupAdapters()
         ChatServerService.connect(this)
+
+        if (AuthService.User.isLoggedIn) {
+            AuthService.refreshLoginAfterReload(this) {}
+        }
     }
 
     private fun setupAdapters() {
