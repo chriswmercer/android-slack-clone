@@ -8,6 +8,7 @@ import com.android.volley.Response
 import com.android.volley.toolbox.JsonArrayRequest
 import dev.chrismercer.smack.controllers.App
 import dev.chrismercer.smack.models.Channel
+import dev.chrismercer.smack.models.Message
 import dev.chrismercer.smack.utils.*
 import io.socket.client.IO
 import org.json.JSONException
@@ -19,6 +20,10 @@ object ChatServerService {
     private lateinit var context: Context
 
     var channels = ArrayList<Channel>()
+    var messages = ArrayList<Message>()
+
+    var selectedChannel : Channel? = null
+        private set
 
     fun connect(context: Context) {
         this.context = context
@@ -27,6 +32,7 @@ object ChatServerService {
         }
 
         setupChannelListener()
+        setupMessageListener()
     }
 
     fun disconnect() {
@@ -42,6 +48,16 @@ object ChatServerService {
     fun newChannel(channelName: String, channelDesc: String) {
         checkConnection()
         socket.emit(SOCKET_EVENT_NEW_CHANNEL, channelName, channelDesc)
+    }
+
+    fun sendMessage(message: String, complete: (Boolean) -> Unit) {
+        checkConnection()
+        if (!AuthService.User.isLoggedIn || selectedChannel == null) complete(false)
+
+        val userId = AuthService.User.id
+        val channelId = selectedChannel!!.id
+        socket.emit(SOCKET_EVENT_NEW_MESSAGE_SEND, message, userId, channelId, AuthService.User.name, AuthService.User.avatar, AuthService.User.colour)
+        complete(true)
     }
 
     fun getChannels(complete: (Boolean) -> Unit) {
@@ -60,7 +76,15 @@ object ChatServerService {
                     val channel = Channel(name, desc, id)
                     this.channels.add(channel)
                 }
+
                 BROADCAST_CHANNEL_DATA_CHANGE.dataChange()
+
+                if (channels.count() > 0) {
+                    setChannel(0) { ok ->
+                        if (ok) BROADCAST_MESSAGE_DATA_CHANGE.dataChange()
+                    }
+                }
+
                 complete(true)
             } catch (e: JSONException) {
                 Log.d("JSON", "Could not get channels: ${e.localizedMessage}")
@@ -84,9 +108,25 @@ object ChatServerService {
         App.sharedPreferences.requestQueue.add(channelsRequest)
     }
 
-    fun clear() {
+    private fun getMessages(forChannel: Channel, complete: (Boolean) -> Unit) {
+        checkConnection()
+        messages.clear()
+
+    }
+
+    fun setChannel(indexInChannels: Int, complete: (Boolean) -> Unit) {
+        if (indexInChannels >= channels.count()) complete(false)
+        selectedChannel = channels[indexInChannels]
+        if (selectedChannel != null) getMessages(selectedChannel!!) { gotChannels ->
+            complete(gotChannels)
+        }
+    }
+
+    fun clearAll() {
         channels.clear()
+        messages.clear()
         BROADCAST_CHANNEL_DATA_CHANGE.dataChange()
+        BROADCAST_MESSAGE_DATA_CHANGE.dataChange()
     }
 
     private fun setupChannelListener() {
@@ -100,7 +140,28 @@ object ChatServerService {
                 channels.add(channel)
                 BROADCAST_CHANNEL_DATA_CHANGE.dataChange()
             } else {
-                Log.d("CHATSERVERSERVICE", "Did not get expected data")
+                Log.d("CHATSERVERSERVICE", "Did not get expected channel data")
+            }
+        }
+    }
+
+    private fun setupMessageListener() {
+        socket.on(SOCKET_EVENT_NEW_MESSAGE) { data ->
+            if (data?.size == 8) {
+                val messageBody = data[0] as String
+                val channelId = data[2] as String
+                val userName = data[3] as String
+                val userAvatar = data[4] as String
+                val avatarColor = data[5] as String
+                val id = data[6] as String
+                val timeStamp = data[7] as String
+
+                val message = Message(messageBody, userName, channelId, userAvatar, avatarColor, id, timeStamp)
+                messages.add(message)
+                BROADCAST_MESSAGE_DATA_CHANGE.dataChange()
+
+            } else {
+                Log.d("CHATSEVERSERVICE", "Did not get expected message data")
             }
         }
     }
@@ -111,5 +172,4 @@ object ChatServerService {
             LocalBroadcastManager.getInstance(context).sendBroadcast(userDataChange)
         }
     }
-
 }

@@ -8,7 +8,7 @@
     tools:showIn="@layout/app_bar_main">
 
     <TextView
-        android:id="@+id/mainChannelView"
+        android:id="@+id/mainChannelText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
@@ -53,5 +53,5 @@
         app:layout_constraintBottom_toTopOf="@+id/messageTextMain"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/mainChannelView" />
+        app:layout_constraintTop_toBottomOf="@+id/mainChannelText" />
 </androidx.constraintlayout.widget.ConstraintLayout>

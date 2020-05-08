@@ -15,6 +15,8 @@ const val SOCKET_URL = "https://chriswm-chatter.herokuapp.com/"
 //sock events
 const val SOCKET_EVENT_NEW_CHANNEL = "newChannel"
 const val SOCKET_EVENT_CHANNEL_CREATED = "channelCreated"
+const val SOCKET_EVENT_NEW_MESSAGE = "messageCreated"
+const val SOCKET_EVENT_NEW_MESSAGE_SEND = "newMessageSent"
 
 //json props
 const val JSONPROP_TOKEN = "token"
@@ -25,6 +27,7 @@ const val EXTRA_LOGIN_EMAIL = "EXTRA_LOGIN_EMAIL"
 //intents
 const val BROADCAST_USER_DATA_CHANGE = "userdatachanged"
 const val BROADCAST_CHANNEL_DATA_CHANGE = "channeldatachanged"
+const val BROADCAST_MESSAGE_DATA_CHANGE = "messagedatachanged"
 
 fun iosColourToAndroid(iosColour: String) : Int {
     val strippedColour = iosColour.replace("[", "").replace("]", "").replace(",", "")

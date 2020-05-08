@@ -11,6 +11,7 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
 import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -18,13 +19,16 @@ import androidx.core.view.GravityCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import dev.chrismercer.smack.R
 import dev.chrismercer.smack.models.Channel
+import dev.chrismercer.smack.models.Message
 import dev.chrismercer.smack.services.AuthService
 import dev.chrismercer.smack.services.ChatServerService
 import dev.chrismercer.smack.utils.BROADCAST_CHANNEL_DATA_CHANGE
+import dev.chrismercer.smack.utils.BROADCAST_MESSAGE_DATA_CHANGE
 import dev.chrismercer.smack.utils.BROADCAST_USER_DATA_CHANGE
 import dev.chrismercer.smack.utils.iosColourToAndroid
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
+import kotlinx.android.synthetic.main.content_main.*
 import kotlinx.android.synthetic.main.nav_header_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -52,6 +56,13 @@ class MainActivity : AppCompatActivity() {
         setupListeners()
         setupAdapters()
 
+        channel_list.setOnItemClickListener { _, _, i, _ ->
+            ChatServerService.setChannel(i) { _ ->
+                updateMessages()
+            }
+            drawer_layout.closeDrawer(GravityCompat.START)
+        }
+
         if (AuthService.User.isLoggedIn) {
             AuthService.refreshLoginAfterReload(this) {}
         }
@@ -65,11 +76,13 @@ class MainActivity : AppCompatActivity() {
     private fun setupListeners() {
         LocalBroadcastManager.getInstance(this).registerReceiver(userDataChangeReceiver, IntentFilter(BROADCAST_USER_DATA_CHANGE))
         LocalBroadcastManager.getInstance(this).registerReceiver(channelDataChangeReceiver, IntentFilter(BROADCAST_CHANNEL_DATA_CHANGE))
+        LocalBroadcastManager.getInstance(this).registerReceiver(messageDataChangeReceiver, IntentFilter(BROADCAST_MESSAGE_DATA_CHANGE))
     }
 
     private fun destroyListeners() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(userDataChangeReceiver)
         LocalBroadcastManager.getInstance(this).unregisterReceiver(channelDataChangeReceiver)
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(messageDataChangeReceiver)
     }
 
     override fun onDestroy() {
@@ -86,6 +99,12 @@ class MainActivity : AppCompatActivity() {
              ChatServerService.getChannels() { complete ->
                 if (complete) {
                     updateChannels()
+
+                    if(ChatServerService.selectedChannel == null) {
+                        mainChannelText.text = "Please select a channel"
+                    } else {
+                        updateMessages()
+                    }
                 }
             }
         }
@@ -94,6 +113,12 @@ class MainActivity : AppCompatActivity() {
     private val channelDataChangeReceiver = object: BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             updateChannels()
+        }
+    }
+
+    private val messageDataChangeReceiver = object: BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            updateMessages()
         }
     }
 
@@ -140,6 +165,16 @@ class MainActivity : AppCompatActivity() {
 
     fun sendMessageMain(view: View) {
         Log.d("LOGGER", "Send Clicked")
+        if(AuthService.User.isLoggedIn) {
+            val message = messageTextMain.text.toString()
+            ChatServerService.sendMessage(message) { sent ->
+                if(sent) {
+                    messageTextMain.text.clear()
+                } else {
+                    Toast.makeText(this, "Send failed, please try again", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
         hideKeyboard()
     }
 
@@ -158,7 +193,14 @@ class MainActivity : AppCompatActivity() {
             profileImageNavHeader.setImageResource(resourceId)
             profileImageNavHeader.setBackgroundColor(Color.TRANSPARENT)
             loginButtonNavHeader.text = "Login"
+            mainChannelText.text = "Please log in"
         }
+    }
+
+    private fun updateMessages() {
+        val channel = ChatServerService.selectedChannel
+        mainChannelText.text = channel?.name
+        //messagesAdapter.notifyDataSetChanged()
     }
 
     private fun updateChannels() {
