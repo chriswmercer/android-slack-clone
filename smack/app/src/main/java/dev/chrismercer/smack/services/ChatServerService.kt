@@ -110,8 +110,49 @@ object ChatServerService {
 
     private fun getMessages(forChannel: Channel, complete: (Boolean) -> Unit) {
         checkConnection()
-        messages.clear()
+        if (!AuthService.User.isLoggedIn) complete(false)
 
+        val url = "${URL_GET_MESSAGES}${forChannel.id}"
+
+        val messagesRequest = object : JsonArrayRequest(Method.GET, url, null, Response.Listener { response ->
+            messages.clear()
+
+            try {
+                for (index in 0 until response.length()) {
+                    val messageObject = response.getJSONObject(index)
+                    val messageBody = messageObject.getString("messageBody")
+                    val userId = messageObject.getString("userId")
+                    val channelId = messageObject.getString("channelId")
+                    val userName = messageObject.getString("userName")
+                    val userAvatar = messageObject.getString("userAvatar")
+                    val userAvatarColor = messageObject.getString("userAvatarColor")
+                    val timeStamp = messageObject.getString("timeStamp")
+
+                    val message = Message(messageBody, userName, channelId, userAvatar, userAvatarColor, userId, timeStamp)
+                    this.messages.add(message)
+                }
+                BROADCAST_MESSAGE_DATA_CHANGE.dataChange()
+                complete(true)
+            } catch (e: JSONException) {
+                Log.d("JSON", "Could not get messages: ${e.localizedMessage}")
+                complete(false)
+            }
+        }, Response.ErrorListener { error ->
+            Log.d("ERROR", "Could not get messages: ${error.printStackTrace()}")
+            complete(false)
+        }) {
+            override fun getBodyContentType(): String {
+                return "application/json; charset=utf-8"
+            }
+
+            override fun getHeaders(): MutableMap<String, String> {
+                val headers = HashMap<String, String>()
+                headers["Authorization"] = "Bearer ${AuthService.User.authToken}"
+                return headers
+            }
+        }
+
+        App.sharedPreferences.requestQueue.add(messagesRequest)
     }
 
     fun setChannel(indexInChannels: Int, complete: (Boolean) -> Unit) {
@@ -148,18 +189,28 @@ object ChatServerService {
     private fun setupMessageListener() {
         socket.on(SOCKET_EVENT_NEW_MESSAGE) { data ->
             if (data?.size == 8) {
-                val messageBody = data[0] as String
                 val channelId = data[2] as String
-                val userName = data[3] as String
-                val userAvatar = data[4] as String
-                val avatarColor = data[5] as String
-                val id = data[6] as String
-                val timeStamp = data[7] as String
 
-                val message = Message(messageBody, userName, channelId, userAvatar, avatarColor, id, timeStamp)
-                messages.add(message)
-                BROADCAST_MESSAGE_DATA_CHANGE.dataChange()
+                if (channelId == selectedChannel?.id) {
+                    val messageBody = data[0] as String
+                    val userName = data[3] as String
+                    val userAvatar = data[4] as String
+                    val avatarColor = data[5] as String
+                    val id = data[6] as String
+                    val timeStamp = data[7] as String
 
+                    val message = Message(
+                        messageBody,
+                        userName,
+                        channelId,
+                        userAvatar,
+                        avatarColor,
+                        id,
+                        timeStamp
+                    )
+                    messages.add(message)
+                    BROADCAST_MESSAGE_DATA_CHANGE.dataChange()
+                }
             } else {
                 Log.d("CHATSEVERSERVICE", "Did not get expected message data")
             }

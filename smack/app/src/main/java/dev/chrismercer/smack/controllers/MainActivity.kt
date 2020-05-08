@@ -17,7 +17,9 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import dev.chrismercer.smack.R
+import dev.chrismercer.smack.adapters.MessageAdapter
 import dev.chrismercer.smack.models.Channel
 import dev.chrismercer.smack.models.Message
 import dev.chrismercer.smack.services.AuthService
@@ -34,6 +36,7 @@ import kotlinx.android.synthetic.main.nav_header_main.*
 class MainActivity : AppCompatActivity() {
 
     lateinit var channelAdapter: ArrayAdapter<Channel>
+    lateinit var messagesAdapter: MessageAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,6 +74,11 @@ class MainActivity : AppCompatActivity() {
     private fun setupAdapters() {
         channelAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, ChatServerService.channels)
         channel_list.adapter = channelAdapter
+
+        messagesAdapter = MessageAdapter(this, ChatServerService.messages)
+        messageListMain.adapter = messagesAdapter
+        val layoutManager = LinearLayoutManager(this)
+        messageListMain.layoutManager = layoutManager
     }
 
     private fun setupListeners() {
@@ -198,9 +206,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateMessages() {
-        val channel = ChatServerService.selectedChannel
-        mainChannelText.text = channel?.name
-        //messagesAdapter.notifyDataSetChanged()
+        if (AuthService.User.isLoggedIn) {
+            val channel = ChatServerService.selectedChannel
+            mainChannelText.text = channel?.name
+            messagesAdapter.notifyDataSetChanged()
+
+            if(messagesAdapter.itemCount > 0) {
+                messageListMain.smoothScrollToPosition(messagesAdapter.itemCount - 1)
+            }
+        }
     }
 
     private fun updateChannels() {
